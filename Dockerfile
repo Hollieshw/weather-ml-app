@@ -5,7 +5,8 @@ WORKDIR /
 #whatevr the container is ^^^^^
 
 # Install dependencies
-
+COPY 
+RUN 
 # Copy the rest of the application code
 
 # Run the app
