@@ -1,13 +1,8 @@
 FROM python:3.9-slim
 
-# Set the working directory in the container
-WORKDIR / 
-#whatevr the container is ^^^^^
-
-# Install dependencies
-COPY 
-RUN 
-# Copy the rest of the application code
-
-# Run the app
-
+WORKDIR / app
+COPY requirments.txt requirements.txt 
+RUN ./app
+RUN pip install -r requirments.txt
+EXPOSE 5000
+CMD ["python3","app.py"]
