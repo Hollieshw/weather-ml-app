@@ -1,0 +1,5 @@
+Modules to be installed before running application/tests:
+pip install numpy
+pip install pandas
+pip install flask
+pip install -U scikit-learn
