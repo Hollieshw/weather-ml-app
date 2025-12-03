@@ -1,0 +1,63 @@
+name: CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  ci-pipeline:
+    runs-on: ubuntu-latest
+
+    steps:
+    # Detect changes
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    # Install Python + Flask dependencies
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.10"
+
+    - name: Install dependencies
+      run: |
+        pip install --upgrade pip
+        pip install -r requirements.txt
+
+    # Run tests
+    - name: Run test_1
+      run: pytest tests/integration_test.py
+
+    - name: Run test_2
+      run: pytest tests/smoke_test.py
+
+    - name: Run test_3
+      run: pytest tests/unit_test.py
+
+    # Docker Setup
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    # Login to DockerHub
+    - name: Login to DockerHub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+    # Build Docker image
+    - name: Build Docker image
+      run: |
+        docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/myapp:latest .
+
+    # Test container launch
+    - name: Test container starts
+      run: |
+        docker run --rm ${{ secrets.DOCKERHUB_USERNAME }}/myapp:latest echo "Container launched OK"
+
+    # Push Docker image
+    - name: Push Docker image
+      run: |
+        docker push ${{ secrets.DOCKERHUB_USERNAME }}/myapp:latest
