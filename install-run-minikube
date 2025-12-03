@@ -1,0 +1,34 @@
+- name: Install Minikube and Run It
+  hosts: localhost
+  user: ubuntu
+  become: yes
+
+  vars:
+    myPath: /home/ubuntu/
+
+  tasks:
+
+    - name: Update Package Manager
+      apt:
+        update_cache: yes
+
+    - name: Install curl
+      apt:
+        name: curl
+        state: present
+
+    - name: Download Minikube binary
+      shell:
+        cmd: curl -Lo "{{ myPath }}minikube" https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+
+    - name: Make Minikube executable
+      file:
+        path: "{{ myPath }}minikube"
+        mode: '0755'
+
+    - name: Move Minikube to /usr/local/bin
+      command: mv "{{ myPath }}minikube" /usr/local/bin/minikube
+
+    - name: Run Minikube
+      command: minikube start
+

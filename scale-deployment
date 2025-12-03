@@ -1,0 +1,32 @@
+- name: Scale Kubernetes Deployment for Rolling Updates
+  hosts: localhost
+  become: yes
+  user: ubuntu
+
+  vars:
+    deployment_name: my-app
+    namespace: default
+    replicas: 3
+
+  tasks:
+
+    - name: Ensure Kubernetes is reachable
+    # This prevents failures when the API server is not running
+      command: kubectl cluster-info
+      register: cluster_status
+      failed_when: "'running' not in cluster_status.stdout.lower()"
+
+    - name: Scale the Kubernetes Deployment
+      command: >
+        kubectl scale deployment {{ deployment_name }}
+        --replicas={{ replicas }}
+        -n {{ namespace }}
+
+    - name: Verify scaling status
+      command: >
+        kubectl get deployment {{ deployment_name }} -n {{ namespace }} -o wide
+      register: deploy_info
+
+    - name: Display Deployment Info
+      debug:
+        var: deploy_info.stdout

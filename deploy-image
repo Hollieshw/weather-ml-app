@@ -1,0 +1,118 @@
+- name: Deploy DockerHub Image to Kubernetes via Minikube
+  hosts: localhost
+  become: yes
+  user: ubuntu
+
+  vars:
+    k8s_dir: /home/ubuntu/k8s
+    docker_image: "yourdockerhubusername/yourimage:latest"
+
+  tasks:
+
+    - name: Update APT cache
+      apt:
+        update_cache: yes
+
+    - name: Install dependencies
+      apt:
+        name:
+          - curl
+          - apt-transport-https
+          - docker.io
+        state: present
+
+    - name: Enable Docker service
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    # ------------------ Install Minikube ------------------
+
+    - name: Download Minikube binary
+      get_url:
+        url: https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+        dest: /usr/local/bin/minikube
+        mode: '0755'
+
+    # ------------------ Start Minikube ------------------
+
+    - name: Delete old Minikube cluster
+      command: minikube delete
+      ignore_errors: yes
+
+    - name: Start Minikube with Docker driver
+      command: minikube start --driver=docker
+      environment:
+        CHANGE_MINIKUBE_NONE_USER: "true"
+
+    - name: Wait for Kubernetes API to be ready
+      command: kubectl get nodes
+      register: kubectl_ready
+      retries: 10
+      delay: 6
+      until: kubectl_ready.rc == 0
+
+    # ------------------ Create K8s Deployment Files ------------------
+
+    - name: Create Kubernetes directory
+      file:
+        path: "{{ k8s_dir }}"
+        state: directory
+
+    - name: Create deployment.yaml
+      copy:
+        dest: "{{ k8s_dir }}/deployment.yaml"
+        content: |
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: myapp-deployment
+          spec:
+            replicas: 1
+            selector:
+              matchLabels:
+                app: myapp
+            template:
+              metadata:
+                labels:
+                  app: myapp
+              spec:
+                containers:
+                - name: myapp
+                  image: "{{ docker_image }}"
+                  ports:
+                  - containerPort: 80
+
+    - name: Create service.yaml
+      copy:
+        dest: "{{ k8s_dir }}/service.yaml"
+        content: |
+          apiVersion: v1
+          kind: Service
+          metadata:
+            name: myapp-service
+          spec:
+            type: NodePort
+            selector:
+              app: myapp
+            ports:
+              - port: 80
+                targetPort: 80
+                nodePort: 30080
+
+    # ------------------ Apply Kubernetes Resources ------------------
+
+    - name: Apply Deployment
+      command: kubectl apply -f "{{ k8s_dir }}/deployment.yaml"
+
+    - name: Apply Service
+      command: kubectl apply -f "{{ k8s_dir }}/service.yaml"
+
+    - name: Get Kubernetes service URL
+      command: minikube service myapp-service --url
+      register: app_url
+
+    - debug:
+        msg: "Application deployed! Access it at: {{ app_url.stdout }}"
+
