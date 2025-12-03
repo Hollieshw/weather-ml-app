@@ -29,13 +29,13 @@ jobs:
 
     # Run tests
     - name: Run test_1
-      run: pytest tests/integration_test.py
+      run: pytest integration_test.py
 
     - name: Run test_2
-      run: pytest tests/smoke_test.py
+      run: pytest smoke_test.py
 
     - name: Run test_3
-      run: pytest tests/unit_test.py
+      run: pytest unit_test.py
 
     # Docker Setup
     - name: Set up Docker Buildx
