@@ -27,14 +27,14 @@ jobs:
         pip install -r requirements.txt
 
     # Run tests
-   # - name: Run test_1
-   #   run: pytest integration_test.py
+    - name: Run test_1
+      run: export CI_TEST=1, pytest integration_test.py
 
     - name: Run test_2
-      run: pytest smoke_test.py
+      run: export CI_TEST=1, pytest smoke_test.py
 
     - name: Run test_3
-      run: pytest unit_test.py
+      run: export CI_TEST=1, pytest unit_test.py
 
     # Docker Setup
     - name: Set up Docker Buildx
