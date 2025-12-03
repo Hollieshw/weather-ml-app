@@ -2,7 +2,6 @@ import unittest
 from app import app, classify_weather, load_model
 import numpy as np
 
-
 class TestUnit(unittest.TestCase):
     def setUp(self):
         app.testing = True
@@ -14,7 +13,7 @@ class TestUnit(unittest.TestCase):
             'temperature': '270.277',
             'pressure': '1006',
             'humidity': '84',
-            # leave out wind_speed
+            # Purposefully leave out wind_speed
             'wind_deg': '274',
             'rain_1h': '0',
             'rain_3h': '0',
@@ -35,26 +34,25 @@ class TestUnit(unittest.TestCase):
     
 	# Ensure that 'clear' class is returned
     def test_clear_classification_output(self):
-        test_input = np.array([(269.686, 1002, 78, 0.23, 0, 0, 0, 0, 0)]).reshape(1, -1)
+        test_input = np.array([269.686,1002,78,0,23,0,0,0,0]).reshape(1,-1)
         class_result, _ = classify_weather(test_input)
         self.assertEqual(class_result, 'clear')
         # Checks that a pre-determined clear weather data set matches the model output
 
 	# Ensure that 'rainy' class is returned
     def test_rainy_classification_output(self):
-        test_input = np.array([(279.626, 998, 99, 1.314, 0.3, 0, 0, 0, 88)]).reshape(1, -1)
+        test_input = np.array([279.626,998,99,1,314,0.3,0,0,88]).reshape(1,-1)
         class_result, _ = classify_weather(test_input)
         self.assertEqual(class_result, 'rainy')
         # Checks that a pre-determined rainy weather data set matches the model output
 
-	# Ensure that 'foggy' class is returned
-    def test_foggy_classification_output(self):
-        test_input = np.array([(289.47, 1015, 88, 2.3, 0, 0, 0, 0, 20)]).reshape(1, -1)
+	# Ensure that 'cloudy' class is returned
+    def test_cloudy_classification_output(self):
+        test_input = np.array([291.15,1028,61,1,260,0,0,0,75]).reshape(1,-1)
         class_result, _ = classify_weather(test_input)
         print(class_result)
-        self.assertEqual(class_result, 'foggy')
-        # Checks that a pre-determined foggy weather data set matches the model output
-
+        self.assertEqual(class_result, 'cloudy')
+        # Checks that a pre-determined cloudy weather data set matches the model output
 
 if __name__ == '__main__':
     unittest.main()
