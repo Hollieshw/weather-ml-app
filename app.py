@@ -11,45 +11,35 @@ def load_model(model_path = 'model/model.pkl'):
 	with open(model_path, 'rb') as f:
 		model = pickle.load(f)
 	return model
-
 #now closes file automatically .
 
 
 def classify_weather(features):
-	model = load_model()
 	start = time.time()
 	prediction_index = model.predict(features)[0]
-	latency = round((time.time() - start) * 1000, 2) #we are here
-	prediction = weather_classes[1]
+	latency = round((time.time() - start) * 1000, 2)
+	prediction = weather_classes[prediction_index]
 	
 	return prediction, latency
-
 
 @app.route('/', methods=['GET', 'POST'])
 def home():
 	if request.method == 'POST':
 		try:
 			# Extract floats from form data
-			temperature = request.form['temperature']
-			pressure = request.form['pressure']
-			humidity = request.form['humidity']
-			wind_speed = request.form['wind_speed']
-			wind_deg = request.form['wind_deg']
+			temperature = float(request.form.get('temperature', 0) or 0)
+			pressure = float(request.form.get('pressure', 0) or 0)
+			humidity = float(request.form.get('humidity', 0) or 0)
+			wind_speed = float(request.form.get('wind_speed', 0) or 0)
+			wind_deg = float(request.form.get('wind_deg', 0) or 0)
 			rain_1h = float(request.form.get('rain_1h', 0) or 0)
 			rain_3h = float(request.form.get('rain_3h', 0) or 0)
 			snow = float(request.form.get('snow', 0) or 0)
 			clouds = float(request.form.get('clouds', 0) or 0)
 
-			features = np.array([
-				temperature, pressure, humidity,
-				wind_speed, wind_deg, rain_1h,
-				rain_3h, snow, clouds
-			]).reshape(1, -1)
-
-			
+			# Convert variables into array which can be passed into the model
+			features = np.array([temperature, pressure, humidity, wind_speed, wind_deg, rain_1h, rain_3h, snow, clouds]).reshape(1, -1)
 			prediction, latency = classify_weather(features)
-
-
 			return render_template('result.html', prediction=prediction, latency=latency)
 
 		except Exception as e:
@@ -57,7 +47,6 @@ def home():
 			return render_template('form.html', error=error_msg)
 	# GET method: show the input form
 	return render_template('form.html')
-
 
 if __name__ == '__main__':
 	app.run(host="0.0.0.0", port=5000)
