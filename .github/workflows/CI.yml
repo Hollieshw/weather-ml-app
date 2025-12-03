@@ -29,7 +29,6 @@ jobs:
     # Run tests
     - name: Run unit tests
       run: |
-        
         pytest unit_test.py
 
     - name: Run integration tests
@@ -39,31 +38,18 @@ jobs:
 
     - name: Run smoke tests
       run: |
-        export CI_TEST=1
         pytest smoke_test.py
 
     # Docker Setup
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
 
-    # Login to DockerHub
-    - name: Login to DockerHub
-      uses: docker/login-action@v3
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-    # Build Docker image
+    # Build Docker image locally
     - name: Build Docker image
       run: |
-        docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/myapp:latest .
+        docker build -t weather-ml-app:latest .
 
     # Test container launch
     - name: Test container starts
       run: |
-        docker run --rm ${{ secrets.DOCKERHUB_USERNAME }}/myapp:latest echo "Container launched OK"
-
-    # Push Docker image
-    - name: Push Docker image
-      run: |
-        docker push ${{ secrets.DOCKERHUB_USERNAME }}/myapp:latest
+        docker run --rm weather-ml-app:latest echo "Container launched OK"
