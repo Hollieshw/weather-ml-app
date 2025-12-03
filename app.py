@@ -13,6 +13,14 @@ def load_model(model_path = 'model/model.pkl'):
 	return model
 #now closes file automatically .
 
+# Creates a mock model for the CI for the tests
+if os.environ.get("CI_TEST"):
+    from unittest.mock import MagicMock
+    model = MagicMock()
+    model.predict.return_value = [0]
+else:
+	# Loads the real model
+    model = load_model()
 
 def classify_weather(features):
 	start = time.time()
