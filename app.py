@@ -11,9 +11,8 @@ def load_model(model_path = 'model/model.pkl'):
 	with open(model_path, 'rb') as f:
 		model = pickle.load(f)
 	return model
-	# Now closes file automatically
+#now closes file automatically .
 
-model = load_model()
 
 def classify_weather(features):
 	start = time.time()
