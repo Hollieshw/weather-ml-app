@@ -5,28 +5,49 @@
 
   vars:
     deployment_name: my-app
-    namespace: k8_kub
+    namespace: k8-kub
     replicas: 3
+    kubeconfig: /home/ubuntu/.kube/config
 
   tasks:
 
+    - name: Ensure namespace exists
+      kubernetes.core.k8s:
+        kubeconfig: "{{ kubeconfig }}"
+        api_version: v1
+        kind: Namespace
+        name: "{{ namespace }}"
+        state: present
+
+    - name: Ensure the Deployment exists with correct replicas
+      kubernetes.core.k8s:
+        kubeconfig: "{{ kubeconfig }}"
+        state: present
+        definition:
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: "{{ deployment_name }}"
+            namespace: "{{ namespace }}"
+          spec:
+            replicas: "{{ replicas }}"
+            selector:
+              matchLabels:
+                app: "{{ deployment_name }}"
+            template:
+              metadata:
+                labels:
+                  app: "{{ deployment_name }}"
+              spec:
+                containers:
+                  - name: "{{ deployment_name }}"
+                    image: cwimage
+
     - name: Ensure Kubernetes is reachable
-    # This prevents failures when the API server is not running
+      # This prevents failures when the API server is not running
       command: kubectl cluster-info
+      become: no
+      environment:
+        KUBECONFIG: "{{ kubeconfig }}"
       register: cluster_status
       failed_when: "'running' not in cluster_status.stdout.lower()"
-
-    - name: Scale the Kubernetes Deployment
-      command: >
-        kubectl scale deployment {{ deployment_name }}
-        --replicas={{ replicas }}
-        -n {{ namespace }}
-
-    - name: Verify scaling status
-      command: >
-        kubectl get deployment {{ deployment_name }} -n {{ namespace }} -o wide
-      register: deploy_info
-
-    - name: Display Deployment Info
-      debug:
-        var: deploy_info.stdout
