@@ -19,7 +19,7 @@
 
     - name: Download Minikube binary
       shell:
-        cmd: curl -Lo "{{ myPath }}minikube" https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+        cmd: curl -Lo "{{ myPath }}minikube" https://storage.googleapis.com/minikube/releases/latest/m>
 
     - name: Make Minikube executable
       file:
@@ -29,6 +29,5 @@
     - name: Move Minikube to /usr/local/bin
       command: mv "{{ myPath }}minikube" /usr/local/bin/minikube
 
-    - name: Run Minikube
-      command: minikube start
-
+    - name: Run Minikube (force as root)
+      command: minikube start --force
