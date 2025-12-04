@@ -5,7 +5,7 @@
 
   vars:
     deployment_name: my-app
-    namespace: default
+    namespace: k8_kub
     replicas: 3
 
   tasks:
