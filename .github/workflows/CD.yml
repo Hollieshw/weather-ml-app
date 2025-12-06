@@ -38,4 +38,4 @@ steps:
   run: bash deploy-image.sh
 - name: Rollout status
 run: |
-kubectl rollout status deployment/myapp-deployment
+  kubectl rollout status deployment/myapp-deployment
