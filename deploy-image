@@ -90,7 +90,7 @@
                 - name: myapp
                   image: "{{ docker_image }}"
                   ports:
-                  - containerPort: 80
+                  - containerPort: 5000
 
     - name: Create service.yaml
       copy:
@@ -120,7 +120,7 @@
         KUBECONFIG: /home/ubuntu/.kube/config
 
     - name: wait for pod to be ready
-      command: kubectl wait --for=condition=ready pod -l app=myapp --timeout=30s
+      command: kubectl wait --for=condition=ready pod -l app=myapp --timeout=120s
 
     - name: Get Kubernetes service URL
       command: minikube service myapp-service --url
