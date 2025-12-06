@@ -1,0 +1,35 @@
+- name: Deploy Kubernetes Service for Weather App
+  hosts: localhost
+  become: yes
+
+  vars:
+    k8s_dir: /home/ubuntu/k8s
+    service_manifest: service.yaml
+
+  tasks:
+
+    - name: Ensure Kubernetes directory exists
+      file:
+        path: "{{ k8s_dir }}"
+        state: directory
+        mode: '0755'
+
+    - name: Copy Kubernetes Service manifest
+      copy:
+        src: service.yaml
+        dest: "{{ k8s_dir }}/service.yaml"
+        mode: '0644'
+
+    - name: Apply Service Manifest using ansible module
+      kubernetes.core.k8s:
+        kubeconfig: "~/.kube/config"
+        state: present
+        definition: " {{ lookup('file',k8s_dir = '/' + service_manifest) }}"
+      register: k8s_result
+
+
+    - name: Show result of applying service
+      debug:
+        var: k8s_result
+
+

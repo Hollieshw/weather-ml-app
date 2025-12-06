@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  ci-pipeline:
+    runs-on: ubuntu-latest
+
+    steps:
+    # Detect changes
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    # Install Python + Flask dependencies
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.10"
+
+    - name: Install dependencies
+      run: |
+        pip install --upgrade pip
+        pip install -r requirements.txt
+
+    # Run tests
+    - name: Run unit tests
+      run: |
+        pytest unit_test.py
+
+    - name: Run integration tests
+      run: |
+        export CI_TEST=1
+        pytest integration_test.py
+
+    - name: Run smoke tests
+      run: |
+        pytest smoke_test.py
+
+    # Docker Setup
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    # Build Docker image locally
+    - name: Build Docker image
+      run: |
+        docker build -t weather-ml-app:latest .
+
+    # Test container launch
+    - name: Test container starts
+      run: |
+        docker run --rm weather-ml-app:latest echo "Container launched OK"

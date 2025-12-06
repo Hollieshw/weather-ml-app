@@ -1,7 +1,6 @@
 import unittest
 from app import app  # Import your Flask app instance
 
-
 class TestModelAppIntegration(unittest.TestCase):
 
 	def setUp(self):
@@ -23,23 +22,18 @@ class TestModelAppIntegration(unittest.TestCase):
 		}
 
 		response = self.client.post('/', data=form_data)
-	
-		# Complete below
-		# Ensure that the result page (response.data) should include a weather prediction
-		
-	
-		# Ensure that the result page should include a prediction time
-		
+
+
+		self.assertIn(b"The weather is:", response.data)
+		self.assertIn(b"Prediction time", response.data)
+		# Ensure that the result page (response.data) includes prediction and prediction time
+		# Done by looking for words which appear in said page
 
 		html_text = response.data.decode('utf-8').lower()
-		valid_classes = [
-			'clear', 'cloudy', 'drizzly', 'foggy', 'hazey',
-			'misty', 'rainy', 'smokey', 'thunderstorm'
-		]
+		valid_classes = ['clear', 'cloudy', 'drizzly', 'foggy', 'hazey', 'misty', 'rainy', 'smokey', 'thunderstorm']
 		found = any(weather in html_text for weather in valid_classes)
-		
-		# Ensure that classification is in valid classes, provide an error message if not.
-		
+		# Ensure that classification is in valid classes, provide an error message if not
+		self.assertTrue(found, "Returned weather classification was not valid")
 
 if __name__ == '__main__':
 	unittest.main()
