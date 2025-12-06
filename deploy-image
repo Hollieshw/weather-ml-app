@@ -1,17 +1,19 @@
 - name: Deploy DockerHub Image to Kubernetes via Minikube
   hosts: localhost
   become: yes
-  user: ubuntu
+  become_user: ubuntu   # Run tasks as the ubuntu user
 
   vars:
     k8s_dir: /home/ubuntu/k8s
-    docker_image: "yourdockerhubusername/yourimage:latest"
+    docker_image: "hollieshw13/cwimage:latest"
 
   tasks:
 
+    # ------------------ System Dependencies ------------------
     - name: Update APT cache
       apt:
         update_cache: yes
+        cache_valid_time: 3600
 
     - name: Install dependencies
       apt:
@@ -28,21 +30,26 @@
         enabled: yes
 
     # ------------------ Install Minikube ------------------
-
     - name: Download Minikube binary
       get_url:
         url: https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
-        dest: /usr/local/bin/minikube
+        dest: /home/ubuntu/minikube
         mode: '0755'
 
-    # ------------------ Start Minikube ------------------
+    - name: Add Minikube to PATH
+      lineinfile:
+        path: /home/ubuntu/.bashrc
+        line: 'export PATH=$PATH:/home/ubuntu'
+        state: present
 
-    - name: Delete old Minikube cluster
-      command: minikube delete
+    # ------------------ Start Minikube ------------------
+ - name: Delete old Minikube cluster
+      command: /home/ubuntu/minikube delete
       ignore_errors: yes
 
     - name: Start Minikube with Docker driver
-      command: minikube start --driver=docker
+      command: /home/ubuntu/minikube start --driver=docker
+      become: no
       environment:
         CHANGE_MINIKUBE_NONE_USER: "true"
 
@@ -52,9 +59,10 @@
       retries: 10
       delay: 6
       until: kubectl_ready.rc == 0
+      environment:
+        KUBECONFIG: /home/ubuntu/.kube/config
 
-    # ------------------ Create K8s Deployment Files ------------------
-
+    # ------------------ Kubernetes Deployment ------------------
     - name: Create Kubernetes directory
       file:
         path: "{{ k8s_dir }}"
@@ -97,22 +105,31 @@
             selector:
               app: myapp
             ports:
-              - port: 80
-                targetPort: 80
+              - port: 5000
+                targetPort: 5000
                 nodePort: 30080
-
-    # ------------------ Apply Kubernetes Resources ------------------
 
     - name: Apply Deployment
       command: kubectl apply -f "{{ k8s_dir }}/deployment.yaml"
+      environment:
+        KUBECONFIG: /home/ubuntu/.kube/config
 
     - name: Apply Service
       command: kubectl apply -f "{{ k8s_dir }}/service.yaml"
+      environment:
+        KUBECONFIG: /home/ubuntu/.kube/config
+
+    - name: wait for pod to be ready
+      command: kubectl wait --for=condition=ready pod -l app=myapp --timeout=30s
 
     - name: Get Kubernetes service URL
       command: minikube service myapp-service --url
       register: app_url
+      ignore_errors: yes
+      environment:
+        KUBECONFIG: /home/ubuntu/.kube/config
 
     - debug:
         msg: "Application deployed! Access it at: {{ app_url.stdout }}"
+
 
